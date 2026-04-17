@@ -1,5 +1,7 @@
 # TaskFlow
 
+[![Maintainability](https://qlty.sh/gh/nikulina2454/projects/taskflow/maintainability.svg)](https://qlty.sh/gh/nikulina2454/projects/taskflow)
+
 Командный TodoList: проекты, задачи, теги, дедлайны, канбан с drag & drop и шаринг проектов между пользователями.
 
 > Пет-проект для практики по веб-разработке (направление Open Source).
@@ -17,7 +19,7 @@
 ## Запуск локально
 
 ```bash
-git clone https://github.com/ByteSpectre/taskflow.git
+git clone https://github.com/nikulina2454/taskflow.git
 cd taskflow
 npm install
 
@@ -68,7 +70,7 @@ npm run dev
 
 ## Деплой
 
-*Появится здесь после первого деплоя на Vercel.*
+https://taskflow-chi-orcin.vercel.app
 
 ## Что уже сделано
 
@@ -86,5 +88,5 @@ npm run dev
 - [x] Шаринг проекта по email
 - [x] Поиск по задачам
 - [x] Админ-панель
-- [ ] Code Climate бейдж
-- [ ] Деплой на Vercel
+- [x] Qlty бейдж
+- [x] Деплой на Vercel
