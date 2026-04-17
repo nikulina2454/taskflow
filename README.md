@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskFlow
 
-## Getting Started
+Командный TodoList: проекты, задачи, теги, дедлайны, канбан с drag & drop и шаринг проектов между пользователями.
 
-First, run the development server:
+> Пет-проект для практики по веб-разработке (направление Open Source).
+
+## Стек
+
+- **Frontend:** Next.js 16 (App Router) + TypeScript + Tailwind CSS 4
+- **Backend:** Route Handlers внутри Next.js
+- **БД:** PostgreSQL (Supabase / Neon)
+- **ORM:** Prisma 6
+- **Авторизация:** NextAuth v5 (credentials + Google)
+- **Drag & Drop:** dnd-kit *(будет подключён на этапе канбана)*
+- **Деплой:** Vercel
+
+## Запуск локально
 
 ```bash
+git clone https://github.com/ByteSpectre/taskflow.git
+cd taskflow
+npm install
+
+cp .env.example .env
+# заполнить DATABASE_URL и AUTH_SECRET
+
+npx prisma migrate dev
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Тестовые доступы
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+После `npm run db:seed`:
 
-## Learn More
+| Роль        | Email                  | Пароль        |
+|-------------|------------------------|---------------|
+| Пользователь| `demo@taskflow.app`    | `Demo12345!`  |
+| Пользователь| `alex@taskflow.app`    | `Alex12345!`  |
+| Админ       | `admin@taskflow.app`   | `Admin12345!` |
 
-To learn more about Next.js, take a look at the following resources:
+## Скрипты
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Команда             | Что делает                                       |
+|---------------------|--------------------------------------------------|
+| `npm run dev`       | Дев-сервер на http://localhost:3000              |
+| `npm run build`     | Прод-сборка                                      |
+| `npm run lint`      | ESLint                                           |
+| `npm run db:migrate`| Применить миграции в dev                         |
+| `npm run db:push`   | Накатить схему без миграции (для прототипа)      |
+| `npm run db:seed`   | Засеять тестовых пользователей и пример проекта  |
+| `npm run db:studio` | Prisma Studio (веб-консоль БД)                   |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Деплой
 
-## Deploy on Vercel
+*Появится здесь после первого деплоя на Vercel.*
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Что уже сделано
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] Структура проекта на Next.js + Tailwind
+- [x] Схема БД в Prisma (User, Project, ProjectMember, Task, Tag, TaskTag)
+- [x] Авторизация через NextAuth (email/пароль + Google)
+- [x] Главная страница, страницы входа и регистрации
+- [x] Сидер с тестовыми пользователями
+- [ ] Список и страница проекта
+- [ ] CRUD задач
+- [ ] Канбан-доска с drag & drop
+- [ ] Теги и фильтры
+- [ ] Шаринг проекта по email
+- [ ] Страница «Сегодня» и поиск
+- [ ] Админ-панель
+- [ ] Code Climate бейдж
+- [ ] Деплой на Vercel
