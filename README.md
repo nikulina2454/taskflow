@@ -17,7 +17,7 @@
 ## Запуск локально
 
 ```bash
-git clone https://github.com/ByteSpectre/taskflow.git
+git clone https://github.com/nikulina2454/taskflow.git
 cd taskflow
 npm install
 
