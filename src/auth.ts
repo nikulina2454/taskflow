@@ -1,4 +1,5 @@
 import NextAuth, { type DefaultSession } from "next-auth";
+import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -7,18 +8,25 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 
+type Role = "USER" | "ADMIN";
+
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: "USER" | "ADMIN";
+      role: Role;
     } & DefaultSession["user"];
+  }
+
+  interface User {
+    role?: Role;
   }
 }
 
-declare module "next-auth/jwt" {
+declare module "@auth/core/jwt" {
   interface JWT {
-    role?: "USER" | "ADMIN";
+    id?: string;
+    role?: Role;
   }
 }
 
@@ -27,7 +35,7 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
 });
 
-const providers = [
+const providers: Provider[] = [
   Credentials({
     name: "Email",
     credentials: {
@@ -74,20 +82,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // @ts-expect-error поле role добавляется в authorize
-        token.role = user.role ?? "USER";
+        token.role = (user.role as Role | undefined) ?? "USER";
       } else if (token.sub && !token.role) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
           select: { role: true },
         });
-        token.role = dbUser?.role ?? "USER";
+        token.role = (dbUser?.role as Role | undefined) ?? "USER";
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = (token.id as string) ?? token.sub ?? "";
+        session.user.id = token.id ?? token.sub ?? "";
         session.user.role = token.role ?? "USER";
       }
       return session;
