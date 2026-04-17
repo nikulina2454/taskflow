@@ -1,0 +1,4 @@
+- uses: qltysh/qlty-action/coverage@v2
+  with:
+    token: ${{ secrets.qltcp_wBy6vuZQl107php9 }}
+    files: coverage/lcov.info
