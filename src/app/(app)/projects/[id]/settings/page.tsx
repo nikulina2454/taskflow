@@ -30,6 +30,11 @@ export default async function ProjectSettingsPage({ params }: Props) {
         select: { id: true, name: true, email: true },
       },
       members: {
+        where: {
+          role: {
+            not: "OWNER",
+          },
+        },
         orderBy: [{ createdAt: "asc" }],
         select: {
           id: true,
@@ -72,7 +77,10 @@ export default async function ProjectSettingsPage({ params }: Props) {
           color: project.color,
         }}
         owner={project.owner}
-        members={project.members}
+        members={project.members.map((member) => ({
+          ...member,
+          role: member.role as "EDITOR" | "VIEWER",
+        }))}
         canDelete={access.canDelete}
       />
     </main>

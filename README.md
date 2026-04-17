@@ -8,10 +8,10 @@
 
 - **Frontend:** Next.js 16 (App Router) + TypeScript + Tailwind CSS 4
 - **Backend:** Route Handlers внутри Next.js
-- **БД:** PostgreSQL (Supabase / Neon)
+- **БД:** PostgreSQL на Supabase
 - **ORM:** Prisma 6
 - **Авторизация:** NextAuth v5 (email + пароль)
-- **Drag & Drop:** dnd-kit *(будет подключён на этапе канбана)*
+- **Drag & Drop:** dnd-kit
 - **Деплой:** Vercel
 
 ## Запуск локально
@@ -22,7 +22,8 @@ cd taskflow
 npm install
 
 cp .env.example .env
-# заполнить DATABASE_URL и AUTH_SECRET
+# вставить пароль от Supabase в DATABASE_URL и DIRECT_URL
+# при необходимости обновить AUTH_SECRET
 
 npx prisma migrate dev
 npm run db:seed
@@ -30,6 +31,18 @@ npm run dev
 ```
 
 Открыть http://localhost:3000.
+
+## Supabase
+
+- Проект БД: `todolist`
+- Ref: `opgqnvtonmahcdwqtfpf`
+- API URL: `https://opgqnvtonmahcdwqtfpf.supabase.co`
+- Схема `public` уже создана в Supabase под текущую Prisma-модель
+- На таблицах `public` включён RLS, чтобы они не торчали наружу через Data API
+- Для Prisma используются две строки подключения:
+  - `DATABASE_URL` — transaction pooler `:6543` с `pgbouncer=true&connection_limit=1`
+  - `DIRECT_URL` — session pooler `:5432` для миграций
+- Осталось подставить реальный пароль БД в `.env` и выполнить `npm run db:seed`
 
 ## Тестовые доступы
 
@@ -68,10 +81,10 @@ npm run dev
 - [x] CRUD задач (статус, приоритет, дедлайн, теги)
 - [x] Канбан с тремя колонками
 - [x] Страница «Сегодня» — просрочки и дедлайны на сегодня
-- [ ] Drag & drop между колонками
-- [ ] Теги: страница и фильтры
-- [ ] Шаринг проекта по email
-- [ ] Поиск по задачам
-- [ ] Админ-панель
+- [x] Drag & drop между колонками
+- [x] Теги: страница и фильтры
+- [x] Шаринг проекта по email
+- [x] Поиск по задачам
+- [x] Админ-панель
 - [ ] Code Climate бейдж
 - [ ] Деплой на Vercel
