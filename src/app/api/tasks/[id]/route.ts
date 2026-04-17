@@ -17,6 +17,7 @@ const updateSchema = z.object({
     .nullable()
     .optional(),
   position: z.number().int().min(0).optional(),
+  tagIds: z.array(z.string()).optional(),
 });
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -41,6 +42,19 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const body = await req.json().catch(() => null);
     const data = updateSchema.parse(body);
 
+    if (data.tagIds) {
+      const allowedTags = await prisma.tag.findMany({
+        where: {
+          ownerId: user.id,
+          id: { in: data.tagIds },
+        },
+        select: { id: true },
+      });
+      if (allowedTags.length !== data.tagIds.length) {
+        throw new HttpError(422, "Можно прикреплять только свои теги");
+      }
+    }
+
     const movingToDone = data.status === "DONE" && task.status !== "DONE";
     const leavingDone = data.status && data.status !== "DONE" && task.status === "DONE";
 
@@ -59,6 +73,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
               : new Date(data.dueDate),
         position: data.position,
         completedAt: movingToDone ? new Date() : leavingDone ? null : undefined,
+        tags: data.tagIds
+          ? {
+              deleteMany: {},
+              create: data.tagIds.map((tagId) => ({
+                tag: { connect: { id: tagId } },
+              })),
+            }
+          : undefined,
       },
       include: {
         tags: { include: { tag: true } },
