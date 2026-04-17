@@ -6,20 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { getProjectAccess } from "@/lib/project-access";
 
-import { TaskCard, type TaskItem } from "./TaskCard";
-import { CreateTaskForm } from "./CreateTaskForm";
+import { ProjectBoard } from "./ProjectBoard";
+import type { AvailableTag, TaskItem } from "./TaskCard";
 
 type Props = { params: Promise<{ id: string }> };
-
-const COLUMNS: Array<{
-  status: TaskItem["status"];
-  title: string;
-  hint: string;
-}> = [
-  { status: "TODO", title: "К выполнению", hint: "В очереди" },
-  { status: "IN_PROGRESS", title: "В работе", hint: "Кто-то уже взял" },
-  { status: "DONE", title: "Готово", hint: "Можно выдохнуть" },
-];
 
 export default async function ProjectPage({ params }: Props) {
   const user = await requireUser();
@@ -42,6 +32,12 @@ export default async function ProjectPage({ params }: Props) {
     include: {
       tags: { include: { tag: true } },
     },
+  });
+
+  const availableTags: AvailableTag[] = await prisma.tag.findMany({
+    where: { ownerId: user.id },
+    orderBy: [{ name: "asc" }],
+    select: { id: true, name: true, color: true },
   });
 
   const tasksByStatus: Record<TaskItem["status"], TaskItem[]> = {
@@ -117,44 +113,18 @@ export default async function ProjectPage({ params }: Props) {
         )}
       </header>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
-        {COLUMNS.map((col) => {
-          const items = tasksByStatus[col.status];
-          return (
-            <div
-              key={col.status}
-              className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/40"
-            >
-              <div className="flex items-baseline justify-between px-1">
-                <h2 className="text-sm font-semibold">{col.title}</h2>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  {items.length}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {items.length === 0 ? (
-                  <p className="px-1 text-xs text-slate-400 dark:text-slate-500">
-                    {col.hint}
-                  </p>
-                ) : (
-                  items.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      canEdit={access.canEdit}
-                    />
-                  ))
-                )}
-              </div>
-
-              {access.canEdit && col.status !== "DONE" && (
-                <CreateTaskForm projectId={project.id} defaultStatus={col.status} />
-              )}
-            </div>
-          );
-        })}
-      </section>
+      <ProjectBoard
+        key={tasks
+          .map((task) => `${task.id}:${task.status}:${task.updatedAt.toISOString()}`)
+          .join("|")}
+        projectId={project.id}
+        canEdit={access.canEdit}
+        initialTasks={tasksByStatus.TODO.concat(
+          tasksByStatus.IN_PROGRESS,
+          tasksByStatus.DONE,
+        )}
+        availableTags={availableTags}
+      />
     </main>
   );
 }

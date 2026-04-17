@@ -1,14 +1,27 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Check, Loader2, Trash2, Undo2 } from "lucide-react";
+import {
+  CalendarClock,
+  Check,
+  Loader2,
+  Tag,
+  Trash2,
+  Undo2,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { formatDueDate, getDueStatus } from "@/lib/due-date";
 
 export type TaskTag = {
   tag: { id: string; name: string; color: string };
+};
+
+export type AvailableTag = {
+  id: string;
+  name: string;
+  color: string;
 };
 
 export type TaskItem = {
@@ -44,17 +57,27 @@ const DUE_COLOR: Record<ReturnType<typeof getDueStatus>, string> = {
 type Props = {
   task: TaskItem;
   canEdit: boolean;
+  availableTags?: AvailableTag[];
 };
 
-export function TaskCard({ task, canEdit }: Props) {
+type TaskPatch = Partial<TaskItem> & {
+  tagIds?: string[];
+};
+
+export function TaskCard({ task, canEdit, availableTags = [] }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [tagsOpen, setTagsOpen] = useState(false);
 
   const isDone = task.status === "DONE";
   const dueStatus = getDueStatus(task.dueDate ? new Date(task.dueDate) : null);
+  const selectedTagIds = useMemo(
+    () => task.tags.map(({ tag }) => tag.id),
+    [task.tags],
+  );
 
-  function patch(body: Partial<TaskItem>) {
+  function patch(body: TaskPatch) {
     if (!canEdit) return;
     setError(null);
     startTransition(async () => {
@@ -89,6 +112,16 @@ export function TaskCard({ task, canEdit }: Props) {
       }
       router.refresh();
     });
+  }
+
+  function toggleTag(tagId: string) {
+    if (!canEdit) return;
+
+    const nextIds = selectedTagIds.includes(tagId)
+      ? selectedTagIds.filter((id) => id !== tagId)
+      : [...selectedTagIds, tagId];
+
+    patch({ tagIds: nextIds });
   }
 
   return (
@@ -171,6 +204,44 @@ export function TaskCard({ task, canEdit }: Props) {
               </span>
             ))}
           </div>
+
+          {canEdit && availableTags.length > 0 && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => setTagsOpen((value) => !value)}
+                className="inline-flex items-center gap-1 text-[11px] text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                <Tag className="h-3 w-3" aria-hidden />
+                {tagsOpen ? "Скрыть метки" : "Изменить метки"}
+              </button>
+
+              {tagsOpen && (
+                <div className="mt-2 flex flex-wrap gap-1.5 rounded-md bg-slate-50 p-2 dark:bg-slate-950">
+                  {availableTags.map((tag) => {
+                    const active = selectedTagIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        disabled={pending}
+                        onClick={() => toggleTag(tag.id)}
+                        className={cn(
+                          "rounded-full border px-2 py-1 text-[11px] transition",
+                          active
+                            ? "border-transparent text-white"
+                            : "border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300",
+                        )}
+                        style={active ? { backgroundColor: tag.color } : undefined}
+                      >
+                        {tag.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {error && (
             <p className="mt-2 text-xs text-red-600 dark:text-red-400" role="alert">

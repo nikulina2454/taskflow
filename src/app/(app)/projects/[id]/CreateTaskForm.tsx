@@ -4,12 +4,19 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 
+import type { AvailableTag } from "./TaskCard";
+
 type Props = {
   projectId: string;
   defaultStatus?: "TODO" | "IN_PROGRESS" | "DONE";
+  availableTags?: AvailableTag[];
 };
 
-export function CreateTaskForm({ projectId, defaultStatus = "TODO" }: Props) {
+export function CreateTaskForm({
+  projectId,
+  defaultStatus = "TODO",
+  availableTags = [],
+}: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -17,6 +24,7 @@ export function CreateTaskForm({ projectId, defaultStatus = "TODO" }: Props) {
   const [priority, setPriority] =
     useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [dueDate, setDueDate] = useState("");
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -25,6 +33,7 @@ export function CreateTaskForm({ projectId, defaultStatus = "TODO" }: Props) {
     setDescription("");
     setPriority("MEDIUM");
     setDueDate("");
+    setTagIds([]);
     setError(null);
   }
 
@@ -53,6 +62,16 @@ export function CreateTaskForm({ projectId, defaultStatus = "TODO" }: Props) {
           | null;
         setError(data?.error ?? "Не удалось создать задачу");
         return;
+      }
+      const created = (await res.json().catch(() => null)) as
+        | { task?: { id?: string } }
+        | null;
+      if (tagIds.length && created?.task?.id) {
+        await fetch(`/api/tasks/${created.task.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tagIds }),
+        });
       }
       reset();
       setOpen(false);
@@ -124,6 +143,42 @@ export function CreateTaskForm({ projectId, defaultStatus = "TODO" }: Props) {
           />
         </label>
       </div>
+
+      {availableTags.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">Метки</p>
+          <div className="flex flex-wrap gap-1.5">
+            {availableTags.map((tag) => {
+              const active = tagIds.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() =>
+                    setTagIds((current) =>
+                      current.includes(tag.id)
+                        ? current.filter((id) => id !== tag.id)
+                        : [...current, tag.id],
+                    )
+                  }
+                  className="rounded-full border px-2 py-1 text-[11px] transition"
+                  style={
+                    active
+                      ? {
+                          backgroundColor: tag.color,
+                          borderColor: tag.color,
+                          color: "#fff",
+                        }
+                      : undefined
+                  }
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {error && (
         <p className="text-xs text-red-600 dark:text-red-400" role="alert">
