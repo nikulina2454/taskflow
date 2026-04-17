@@ -15,7 +15,6 @@ export default async function LoginPage({
   if (session?.user) redirect("/projects");
 
   const { callbackUrl, error } = await searchParams;
-  const hasGoogle = Boolean(process.env.GOOGLE_CLIENT_ID);
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-16">
@@ -27,7 +26,6 @@ export default async function LoginPage({
 
         <LoginForm
           callbackUrl={callbackUrl ?? "/projects"}
-          showGoogle={hasGoogle}
           initialError={error}
         />
 

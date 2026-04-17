@@ -10,7 +10,7 @@
 - **Backend:** Route Handlers внутри Next.js
 - **БД:** PostgreSQL (Supabase / Neon)
 - **ORM:** Prisma 6
-- **Авторизация:** NextAuth v5 (credentials + Google)
+- **Авторизация:** NextAuth v5 (email + пароль)
 - **Drag & Drop:** dnd-kit *(будет подключён на этапе канбана)*
 - **Деплой:** Vercel
 
@@ -61,7 +61,7 @@ npm run dev
 
 - [x] Структура проекта на Next.js + Tailwind
 - [x] Схема БД в Prisma (User, Project, ProjectMember, Task, Tag, TaskTag)
-- [x] Авторизация через NextAuth (email/пароль + Google)
+- [x] Авторизация через NextAuth (email/пароль)
 - [x] Главная страница, страницы входа и регистрации
 - [x] Сидер с тестовыми пользователями
 - [ ] Список и страница проекта

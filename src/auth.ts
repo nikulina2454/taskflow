@@ -1,7 +1,5 @@
 import NextAuth, { type DefaultSession } from "next-auth";
-import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -35,49 +33,38 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
 });
 
-const providers: Provider[] = [
-  Credentials({
-    name: "Email",
-    credentials: {
-      email: { label: "Email", type: "email" },
-      password: { label: "Password", type: "password" },
-    },
-    async authorize(raw) {
-      const parsed = credentialsSchema.safeParse(raw);
-      if (!parsed.success) return null;
+const credentialsProvider = Credentials({
+  name: "Email",
+  credentials: {
+    email: { label: "Email", type: "email" },
+    password: { label: "Password", type: "password" },
+  },
+  async authorize(raw) {
+    const parsed = credentialsSchema.safeParse(raw);
+    if (!parsed.success) return null;
 
-      const { email, password } = parsed.data;
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user?.passwordHash || user.isBlocked) return null;
+    const { email, password } = parsed.data;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user?.passwordHash || user.isBlocked) return null;
 
-      const ok = await bcrypt.compare(password, user.passwordHash);
-      if (!ok) return null;
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return null;
 
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        role: user.role,
-      };
-    },
-  }),
-];
-
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  providers.push(
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-  );
-}
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      role: user.role,
+    };
+  },
+});
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
-  providers,
+  providers: [credentialsProvider],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
