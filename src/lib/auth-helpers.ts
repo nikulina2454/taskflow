@@ -32,3 +32,9 @@ export async function requireUser(): Promise<SessionUser> {
   if (!user) throw new HttpError(401, "Не авторизован");
   return user;
 }
+
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") throw new HttpError(403, "Нужны права администратора");
+  return user;
+}
